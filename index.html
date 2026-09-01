@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bautizo de Joana M. B. - Invitación</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" >
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600&family=Alex+Brush&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        sage: {
+                            50: '#f4f7f4',
+                            100: '#e3eae3',
+                            200: '#ca9b8',
+                            500: '#879b86',
+                            700: '#536553',
+                            900: '#2c392c'
+                        },
+                        champagne: {
+                            100: '#fdfbf7',
+                            200: '#f7f0e6',
+                            400: '#e5d1b8',
+                            600: '#c5a072'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cormorant Garamond', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                        script: ['Alex Brush', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .animate-float {
+            animation: floatSlow 6s ease-in-out infinite;
+        }
+        .animate-pulse-glow {
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+        .shine-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .shine-effect::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transform: translateX(-100%);
+            animation: shine 3s infinite;
+        }
+        
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Envelope interactive opening animation */
+        .envelope-wrapper {
+            perspective: 1000px;
+        }
+        .envelope-flap {
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .envelope-open .envelope-flap {
+            transform: rotateX(180deg);
+        }
+        
+        /* Particle canvas background overlay */
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-[#f7f5f0] text-gray-800 font-sans antialiased selection:bg-sage-200 selection:text-sage-900 min-h-screen flex flex-col items-center justify-start overflow-x-hidden">
+
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Background Music Audio & Floating Player Widget -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf7f6.mp3?filename=gentle-piano-110603.mp3" type="audio/mpeg">
+        Tu navegador no soporta elementos de audio.
+    </audio>
+
+    <div id="musicPlayerWidget" class="fixed top-4 right-4 z-50 hidden items-center gap-2 bg-white/80 backdrop-blur-md px-3 py-2 rounded-full shadow-lg border border-sage-200 transition-all">
+        <button onclick="togglePlayMusic()" id="musicToggleBtn" class="w-9 h-9 rounded-full bg-sage-700 text-white flex items-center justify-center hover:bg-sage-800 transition-transform active:scale-95 shadow-md">
+            <i id="musicIcon" class="fas fa-music text-xs animate-bounce"></i>
+        </button>
+        <span id="musicStatusText" class="text-[11px] font-medium text-sage-900 pr-2 hidden sm:inline">Música de fondo</span>
+    </div>
+
+    <!-- Photo & Music Customizer Floating Button (Editor Quick Tool) -->
+    <button onclick="toggleCustomizerModal()" class="fixed bottom-5 left-5 z-50 bg-sage-800 text-white p-3.5 rounded-full shadow-xl hover:bg-sage-900 transition-all duration-300 flex items-center gap-2 text-xs font-medium border border-white/40 group">
+        <i class="fas fa-sliders text-base group-hover:rotate-12 transition-transform"></i>
+        <span class="pr-1">Personalizar Fotos y Música</span>
+    </button>
+
+    <div id="customizerModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-sage-100 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3">
+                <h3 class="font-serif text-xl text-sage-950 font-semibold flex items-center gap-2">
+                    <i class="fas fa-sliders text-sage-600"></i>
+                    Personalizar Fotos y Música
+                </h3>
+                <button onclick="toggleCustomizerModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i class="fas fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-gray-500 leading-relaxed">
+                Selecciona tus propias fotos y tu canción favorita desde tu dispositivo:
+            </p>
+
+            <!-- Input 1: Cover photo -->
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-sage-900">1. Foto de la Portada / Sobre</label>
+                <input type="file" id="coverPhotoInput" accept="image/*" onchange="handleImageUpload(event, 'cover')" 
+                       class="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sage-50 file:text-sage-800 hover:file:bg-sage-100 cursor-pointer">
+                
+                <!-- Quick framing controls and sliders -->
+                <div class="bg-sage-50/90 p-3 rounded-2xl border border-sage-100 space-y-2 mt-2">
+                    <span class="text-[11px] font-semibold text-sage-950 flex items-center gap-1">
+                        <i class="fas fa-crop-simple text-sage-600"></i> Ajustar Encuadre en Tiempo Real:
+                    </span>
+                    
+                    <!-- Presets -->
+                    <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                        <button type="button" onclick="applyCoverPreset('right')" class="px-2.5 py-1 text-[10px] bg-sage-200 hover:bg-sage-300 text-sage-950 rounded-lg font-medium shadow-sm transition-colors">👉 Ver Niño (Der.)</button>
+                        <button type="button" onclick="applyCoverPreset('both')" class="px-2.5 py-1 text-[10px] bg-sage-700 hover:bg-sage-800 text-white rounded-lg font-medium shadow-sm transition-colors">👥 Completo (Ambos)</button>
+                        <button type="button" onclick="applyCoverPreset('left')" class="px-2.5 py-1 text-[10px] bg-sage-100 hover:bg-sage-200 text-sage-950 rounded-lg font-medium shadow-sm transition-colors">👈 Ver Bebé (Izq.)</button>
+                        <button type="button" onclick="applyCoverPreset('center')" class="px-2.5 py-1 text-[10px] bg-white border border-sage-200 text-gray-700 rounded-lg font-medium shadow-sm transition-colors">🎯 Centro</button>
+                    </div>
+
+                    <!-- Slider Horizontal X -->
+                    <div class="space-y-1 pt-1">
+                        <div class="flex justify-between text-[10px] text-gray-600 font-medium">
+                            <span>Posición Horizontal (Izquierda ↔ Derecha)</span>
+                            <span id="posXVal" class="text-sage-900 font-bold">50%</span>
+                        </div>
+                        <input type="range" id="coverSliderX" min="0" max="100" value="50" oninput="updateCoverFromSliders()" class="w-full accent-sage-600 h-1.5 bg-sage-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <!-- Slider Vertical Y -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] text-gray-600 font-medium">
+                            <span>Posición Vertical (Arriba ↕ Abajo)</span>
+                            <span id="posYVal" class="text-sage-900 font-bold">50%</span>
+                        </div>
+                        <input type="range" id="coverSliderY" min="0" max="100" value="50" oninput="updateCoverFromSliders()" class="w-full accent-sage-600 h-1.5 bg-sage-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input 2: Interior Baby Photo -->
+            <div class="space-y-1 pt-2">
+                <label class="block text-xs font-semibold text-sage-900">2. Foto Principal de Joana (Interior)</label>
+                <input type="file" id="mainPhotoInput" accept="image/*" onchange="handleImageUpload(event, 'main')" 
+                       class="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sage-50 file:text-sage-800 hover:file:bg-sage-100 cursor-pointer">
+                <span class="text-[10px] text-gray-400">Reemplaza la fotografía central del bebé</span>
+            </div>
+
+            <!-- Input 3: Custom Audio File -->
+            <div class="space-y-1 pt-3 border-t border-sage-100">
+                <label class="block text-xs font-semibold text-sage-900">3. Tu Música / Canción (MP3 o WAV)</label>
+                <input type="file" id="audioFileInput" accept="audio/*" onchange="handleAudioUpload(event)" 
+                       class="block w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sage-50 file:text-sage-800 hover:file:bg-sage-100 cursor-pointer">
+                <span class="text-[10px] text-gray-400">Sube la canción que deseas que suene de fondo</span>
+            </div>
+
+            <div class="pt-3 flex gap-2">
+                <button onclick="toggleCustomizerModal()" class="w-full bg-sage-700 text-white text-xs font-medium py-2.5 rounded-xl hover:bg-sage-800 transition-colors">
+                    Aplicar y Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="envelopeOverlay" class="fixed inset-0 z-40 bg-[#f7f5f0] flex flex-col items-center justify-center p-4 transition-opacity duration-1000">
+        <div class="envelope-wrapper max-w-sm w-full bg-white/90 backdrop-blur-md rounded-3xl shadow-2xl border border-sage-200 p-8 text-center relative overflow-hidden group cursor-pointer" onclick="openInvitation()">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-sage-200 rounded-full blur-2xl opacity-60"></div>
+            <div class="absolute -bottom-12 -left-12 w-32 h-32 bg-champagne-400 rounded-full blur-2xl opacity-40"></div>
+            
+            <div class="relative z-10 space-y-3 -mt-2">
+                <span class="text-xs uppercase tracking-[0.3em] text-sage-800 font-semibold">Invitación Especial</span>
+                
+                <!-- Envelope Icon/Image container in Circle format -->
+                <div id="envelopeIconWrapper" class="w-72 h-72 sm:w-80 sm:h-80 mx-auto rounded-full bg-gradient-to-b from-[#f4f7f4] via-[#e3eae3] to-[#d4ded4] border-4 border-sage-300 flex items-center justify-center shadow-xl -mt-1 mb-2 animate-float overflow-hidden relative group/img p-0">
+                    <i id="envelopeDoveIcon" class="fas fa-dove text-3xl text-sage-600 hidden"></i>
+                    <img id="envelopeCustomImg" 
+                         src="1000018160.jpg" 
+                         style="object-fit: cover; object-position: 50% 50%;" 
+                         class="w-full h-full rounded-full transition-all duration-300 scale-105" 
+                         alt="Foto Portada Joana y Hermano" 
+                         onerror="this.onerror=null; this.src='https://placehold.co/400x400/e3eae3/536553?text=Joana+y+Hermano';" />
+
+                    <!-- Quick framing access badge over image -->
+                    <div class="absolute bottom-3 flex gap-1 z-20">
+                        <button type="button" onclick="event.stopPropagation(); toggleCustomizerModal();" class="bg-sage-900/85 hover:bg-sage-900 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-md border border-white/40 shadow-lg transition-all flex items-center gap-1 opacity-90 hover:scale-105">
+                            <i class="fas fa-crop-simple text-sage-200"></i>
+                            <span>Ajustar Encuadre</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <h2 class="font-serif text-3xl text-sage-950 font-light tracking-wide">Joana M. B.</h2>
+                <p class="font-script text-2xl text-champagne-600">Mi Bautizo</p>
+                
+                <div class="pt-4">
+                    <button class="shine-effect bg-sage-700 text-white font-medium px-6 py-3 rounded-full shadow-md hover:bg-sage-800 transition-all transform hover:-translate-y-0.5 text-xs uppercase tracking-widest flex items-center justify-center mx-auto gap-2">
+                        <span>Abrir Invitación</span>
+                        <i class="fas fa-envelope-open text-sm"></i>
+                    </button>
+                </div>
+                <p class="text-[11px] text-gray-400 font-light pt-2">Toca para descubrir la invitación</p>
+            </div>
+        </div>
+    </div>
+
+    <main id="mainCard" class="relative z-10 max-w-md w-full min-h-screen my-0 sm:my-6 sm:rounded-3xl shadow-2xl bg-white overflow-hidden opacity-0 transition-opacity duration-1000 border border-sage-100">
+        
+        <!-- Hero Header -->
+        <header class="relative bg-gradient-to-b from-sage-100/70 via-sage-50/40 to-white pt-8 pb-6 px-6 text-center overflow-hidden">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-72 bg-sage-200/40 rounded-full blur-3xl -z-10"></div>
+            
+            <div class="inline-block px-4 py-1 rounded-full bg-white/80 border border-sage-200 text-sage-800 text-xs tracking-widest uppercase mb-3 shadow-sm">
+                ¡Estás Invitado!
+            </div>
+            
+            <h1 class="font-serif text-4xl sm:text-5xl text-sage-950 font-light tracking-tight mb-1">
+                Joana M. B.
+            </h1>
+            
+            <p class="font-script text-3xl text-champagne-600 mb-4">Mi Bautizo</p>
+            
+            <!-- Baby Picture Frame Modern Glassmorphic -->
+            <div class="relative w-52 h-52 sm:w-64 sm:h-64 mx-auto mb-5 -mt-2">
+                <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-champagne-400 to-sage-500 animate-pulse-glow"></div>
+                <div class="absolute inset-1.5 rounded-full bg-white p-1.5 shadow-xl overflow-hidden">
+                    <img id="heroBabyImg" src="1000015785.jpg" 
+                         alt="Joana M. B." 
+                         class="w-full h-full object-cover rounded-full shadow-inner object-center"
+                         onerror="this.src='https://placehold.co/400x400/e3eae3/536553?text=Joana+M.+B.'" />
+                </div>
+                <!-- Floral SVG accent badge -->
+             
+            
+                </div>
+            </div>
+
+            <p class="text-xs uppercase tracking-widest text-gray-500 font-medium max-w-xs mx-auto leading-relaxed">
+                Me encantará que me acompañéis en este día tan especial
+            </p>
+        </header>
+
+        <section class="px-6 py-6 bg-sage-50/50 border-y border-sage-100 text-center">
+            <div class="flex items-center justify-center gap-3 mb-4">
+                <div class="h-px bg-champagne-400 w-12"></div>
+                <span class="font-serif italic text-lg text-sage-900">Sábado</span>
+                <div class="h-px bg-champagne-400 w-12"></div>
+            </div>
+            
+            <div class="flex items-center justify-center gap-4 my-2">
+                <div class="text-center">
+                    <span class="block text-4xl font-serif font-semibold text-sage-900">26</span>
+                </div>
+                <div class="text-left border-l border-sage-300 pl-4 py-1">
+                    <span class="block text-xs uppercase tracking-widest text-sage-700 font-semibold">Septiembre</span>
+                    <span class="block text-xs text-gray-500">&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp2026</span>
+                </div>
+                <div class="border-l border-sage-300 pl-4 py-1 text-left">
+                    <span class="block text-xs uppercase tracking-widest text-sage-700 font-semibold">12:00 H</span>
+                    <span class="block text-xs text-gray-500"></span>
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="mt-6 pt-4 border-t border-sage-200/60">
+                <p class="text-[11px] uppercase tracking-widest text-gray-400 mb-3 font-semibold">Faltan únicamente</p>
+                <div class="grid grid-cols-4 gap-2 max-w-xs mx-auto" id="countdown">
+                    <div class="bg-white rounded-xl p-2 shadow-sm border border-sage-100">
+                        <span id="days" class="block text-xl font-semibold text-sage-900">00</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-400">Días</span>
+                    </div>
+                    <div class="bg-white rounded-xl p-2 shadow-sm border border-sage-100">
+                        <span id="hours" class="block text-xl font-semibold text-sage-900">00</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-400">Horas</span>
+                    </div>
+                    <div class="bg-white rounded-xl p-2 shadow-sm border border-sage-100">
+                        <span id="minutes" class="block text-xl font-semibold text-sage-900">00</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-400">Min</span>
+                    </div>
+                    <div class="bg-white rounded-xl p-2 shadow-sm border border-sage-100">
+                        <span id="seconds" class="block text-xl font-semibold text-sage-900">00</span>
+                        <span class="text-[9px] uppercase tracking-wider text-gray-400">Seg</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="p-6 space-y-6">
+            <h3 class="text-center font-serif text-2xl text-sage-900 font-normal">Dónde y cuándo</h3>
+
+            <!-- Ceremony Card -->
+            <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 relative border border-sage-100">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-sage-100 flex items-center justify-center text-sage-700 shrink-0 text-xl">
+                        <i class="fas fa-church"></i>
+                    </div>
+                    <div class="flex-1">
+                        <span class="text-[10px] uppercase tracking-widest font-bold text-champagne-600">La Ceremonia Religiosa</span>
+                        <h4 class="font-serif text-lg text-sage-900 font-semibold mt-0.5">Iglesia Parroquial de Aldán</h4>
+                        <p class="text-xs text-gray-500 mt-1">Praza Obispo Cerviño, s/n, Aldán-Cangas</p>
+                        <p class="text-xs font-semibold text-sage-700 mt-1"><i class="far font-normal fa-clock mr-1"></i> 12:00 Horas</p>
+                        
+                        <a href="https://maps.google.com/?cid=14371270082672999857" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-sage-700 hover:text-sage-900 bg-sage-50 hover:bg-sage-100 px-3 py-1.5 rounded-lg border border-sage-200 transition-colors">
+                            <i class="fas fa-location-dot text-red-500"></i>
+                            <span>Cómo llegar en Google Maps</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reception / Convite Card -->
+            <div class="glass-card rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-300 relative border border-sage-100">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-champagne-200 flex items-center justify-center text-champagne-600 shrink-0 text-xl">
+                        <i class="fas fa-utensils"></i>
+                    </div>
+                    <div class="flex-1">
+                        <span class="text-[10px] uppercase tracking-widest font-bold text-champagne-600">El Convite</span>
+                        <h4 class="font-serif text-lg text-sage-900 font-semibold mt-0.5">Carpa Restaurante Loureiro</h4>
+                        <p class="text-xs text-gray-500 mt-1">Avenida Loureiro, 13, Bueu</p>
+                        <p class="text-xs font-semibold text-sage-700 mt-1"><i class="far font-normal fa-clock mr-1"></i> Después de la ceremonia</p>
+                        
+                        <a href="https://maps.app.goo.gl/qs1NrmnjopkV5Jzi9" target="_blank" rel="noopener noreferrer" 
+                           class="inline-flex items-center gap-1.5 mt-3 text-xs font-medium text-sage-700 hover:text-sage-900 bg-sage-50 hover:bg-sage-100 px-3 py-1.5 rounded-lg border border-sage-200 transition-colors">
+                            <i class="fas fa-location-dot text-red-500"></i>
+                            <span>Ver ubicación del restaurante</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="px-6 py-4 bg-gradient-to-r from-sage-900 to-sage-700 text-white rounded-2xl mx-6 shadow-md text-center">
+            <p class="text-xs font-light text-sage-100">¡Guarda la fecha en tu agenda!</p>
+            <h4 class="font-serif text-lg font-medium text-white my-1">26 de Septiembre de 2026</h4>
+            <div class="flex justify-center gap-3 mt-3">
+                <button onclick="addToGoogleCalendar()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg border border-white/20 backdrop-blur-sm transition-all flex items-center gap-1.5">
+                    <i class="fab fa-google"></i> Google Cal
+                </button>
+                <button onclick="downloadICS()" class="bg-white/10 hover:bg-white/20 text-white text-xs px-3 py-1.5 rounded-lg border border-white/20 backdrop-blur-sm transition-all flex items-center gap-1.5">
+                    <i class="fas fa-calendar-plus"></i> Apple / Outlook
+                </button>
+            </div>
+        </section>
+
+        <section class="p-6 mt-4 bg-sage-50/40">
+            <div class="text-center mb-5">
+                <span class="text-xs font-bold uppercase tracking-widest text-champagne-600">Confirma tu asistencia</span>
+                <h3 class="font-serif text-2xl text-sage-900 mt-1">¿Nos acompañas?</h3>
+                <p class="text-xs text-gray-500 mt-1">Por favor, confirma antes del 12 de Septiembre de 2026</p>
+            </div>
+
+            <form id="rsvpForm" onsubmit="sendWhatsAppRSVP(event)" class="space-y-4 max-w-sm mx-auto">
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Tu Nombre Completo *</label>
+                    <input type="text" id="guestName" required placeholder="Ej. Ana & Carlos" 
+                           class="w-full px-4 py-2.5 rounded-xl border border-sage-200 focus:ring-2 focus:ring-sage-500 focus:border-sage-500 outline-none text-xs bg-white shadow-sm">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">¿Asistirás?</label>
+                    <select id="attendance" class="w-full px-4 py-2.5 rounded-xl border border-sage-200 focus:ring-2 focus:ring-sage-500 focus:border-sage-500 outline-none text-xs bg-white shadow-sm">
+                        <option value="¡Sí, asistiré encantado/a!">¡Sí, con mucho gusto asistiré!</option>
+                        <option value="Lamentablemente no podré asistir">Lamentablemente no podré asistir</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nº Adultos</label>
+                        <input type="number" id="adultsCount" min="1" value="1" 
+                               class="w-full px-4 py-2.5 rounded-xl border border-sage-200 focus:ring-2 focus:ring-sage-500 outline-none text-xs bg-white text-center shadow-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nº Niños</label>
+                        <input type="number" id="kidsCount" min="0" value="0" 
+                               class="w-full px-4 py-2.5 rounded-xl border border-sage-200 focus:ring-2 focus:ring-sage-500 outline-none text-xs bg-white text-center shadow-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">Alergias o Menú Especial (Opcional)</label>
+                    <input type="text" id="allergies" placeholder="Ej. Vegetariano, celíaco..." 
+                           class="w-full px-4 py-2.5 rounded-xl border border-sage-200 focus:ring-2 focus:ring-sage-500 outline-none text-xs bg-white shadow-sm">
+                </div>
+
+                <div class="pt-2">
+                    <button type="button" onclick="sendWhatsAppRSVPToBoth()" 
+                            class="w-full shine-effect bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-3.5 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-xs uppercase tracking-wider">
+                        <i class="fab fa-whatsapp text-lg"></i>
+                        <span>Confirmar Asistencia por WhatsApp</span>
+                    </button>
+                    <p class="text-[10px] text-gray-400 text-center mt-2">
+                        Se abrirá el mensaje de confirmación para enviarlo a ambos teléfonos &nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp(617 69 14 17 y 678 34 89 50)
+                    </p>
+                </div>
+            </form>
+        </section>
+
+        <footer class="py-8 px-6 text-center bg-white border-t border-sage-100">
+            <p class="font-script text-3xl text-champagne-600 mb-2">¡Te esperamos!</p>
+            <p class="text-[11px] uppercase tracking-widest text-gray-400 font-light">
+                Joana M. B. & Familia
+            </p>
+            <div class="mt-4 text-sage-300 flex justify-center gap-2 text-xs">
+                <i class="fas fa-heart"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-dove"></i>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        // Event target date: Sept 26, 2026 at 12:00:00 CEST
+        const eventDate = new Date('2026-09-26T12:00:00').getTime();
+
+        // Canvas Particle Background Setup & Initialization
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        let width = 0, height = 0;
+        const particles = [];
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * (width || window.innerWidth);
+                this.y = Math.random() * (height || window.innerHeight);
+                this.size = Math.random() * 3 + 1;
+                this.speedY = Math.random() * 0.4 + 0.1;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.opacity = Math.random() * 0.4 + 0.2;
+            }
+            update() {
+                this.y -= this.speedY;
+                this.x += this.speedX;
+                if (this.y < -10 || this.x < -10 || this.x > width + 10) {
+                    this.reset();
+                    this.y = height + 10;
+                }
+            }
+            draw() {
+                if (!ctx) return;
+                ctx.fillStyle = `rgba(197, 160, 114, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        if (canvas && ctx) {
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            for (let i = 0; i < 35; i++) {
+                particles.push(new Particle());
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, width, height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+        }
+
+        // Toggle Photo Customizer Modal
+        function toggleCustomizerModal() {
+            const modal = document.getElementById('customizerModal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Dynamic & Reliable Cover Photo Framing Functions
+        function updateCoverFromSliders() {
+            const posX = document.getElementById('coverSliderX').value;
+            const posY = document.getElementById('coverSliderY').value;
+            const customImg = document.getElementById('envelopeCustomImg');
+            
+            const posXLabel = document.getElementById('posXVal');
+            const posYLabel = document.getElementById('posYVal');
+            if (posXLabel) posXLabel.innerText = posX + '%';
+            if (posYLabel) posYLabel.innerText = posY + '%';
+
+            if (customImg) {
+                customImg.style.objectFit = 'cover';
+                customImg.style.objectPosition = `${posX}% ${posY}%`;
+            }
+        }
+
+        function applyCoverPreset(type) {
+            const customImg = document.getElementById('envelopeCustomImg');
+            const sliderX = document.getElementById('coverSliderX');
+            const sliderY = document.getElementById('coverSliderY');
+            if (!customImg) return;
+
+            if (type === 'right') {
+                if (sliderX) sliderX.value = 85;
+                if (sliderY) sliderY.value = 50;
+            } else if (type === 'left') {
+                if (sliderX) sliderX.value = 15;
+                if (sliderY) sliderY.value = 50;
+            } else if (type === 'both') {
+                if (sliderX) sliderX.value = 50;
+                if (sliderY) sliderY.value = 50;
+            } else if (type === 'center') {
+                if (sliderX) sliderX.value = 50;
+                if (sliderY) sliderY.value = 50;
+            }
+            customImg.style.objectFit = 'cover';
+            updateCoverFromSliders();
+        }
+
+        // Handle Image Uploads Live Preview
+        function handleImageUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+
+                if (type === 'cover') {
+                    const doveIcon = document.getElementById('envelopeDoveIcon');
+                    const customImg = document.getElementById('envelopeCustomImg');
+                    if (doveIcon) doveIcon.classList.add('hidden');
+                    if (customImg) {
+                        customImg.src = imageUrl;
+                        customImg.classList.remove('hidden');
+                        updateCoverFromSliders();
+                    }
+                } else if (type === 'main') {
+                    const heroBabyImg = document.getElementById('heroBabyImg');
+                    if (heroBabyImg) heroBabyImg.src = imageUrl;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Handle Custom Audio Upload
+        function handleAudioUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const audioUrl = URL.createObjectURL(file);
+            const bgMusic = document.getElementById('bgMusic');
+            if (bgMusic) {
+                bgMusic.src = audioUrl;
+                bgMusic.load();
+                bgMusic.play().then(() => {
+                    isMusicPlaying = true;
+                    const icon = document.getElementById('musicIcon');
+                    if (icon) {
+                        icon.classList.remove('fa-play');
+                        icon.classList.add('fa-volume-high', 'animate-bounce');
+                    }
+                    const statusText = document.getElementById('musicStatusText');
+                    if (statusText) statusText.innerText = "Reproduciendo tu canción";
+                }).catch(err => {
+                    console.log("Audio autoplay restricted by browser:", err);
+                });
+            }
+        }
+
+        // Open Envelope Interactive Animation
+        function openInvitation() {
+            const overlay = document.getElementById('envelopeOverlay');
+            const mainCard = document.getElementById('mainCard');
+            const musicWidget = document.getElementById('musicPlayerWidget');
+            const bgMusic = document.getElementById('bgMusic');
+            
+            // Música en silencio por defecto (sin reproducción automática)
+            if (bgMusic) {
+                bgMusic.pause();
+            }
+            if (musicWidget) {
+                musicWidget.classList.remove('hidden');
+                musicWidget.classList.add('flex');
+                const icon = document.getElementById('musicIcon');
+                if (icon) {
+                    icon.classList.remove('fa-volume-high', 'animate-bounce');
+                    icon.classList.add('fa-play');
+                }
+                const statusText = document.getElementById('musicStatusText');
+                if (statusText) statusText.innerText = "Música (Pausada)";
+            }
+
+            overlay.classList.add('opacity-0');
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                mainCard.classList.remove('opacity-0');
+            }, 800);
+        }
+
+        // Toggle Background Music Play / Pause
+        let isMusicPlaying = false;
+        function togglePlayMusic() {
+            const bgMusic = document.getElementById('bgMusic');
+            const icon = document.getElementById('musicIcon');
+            const statusText = document.getElementById('musicStatusText');
+            if (!bgMusic) return;
+
+            if (bgMusic.paused) {
+                bgMusic.play();
+                if (icon) {
+                    icon.classList.remove('fa-play');
+                    icon.classList.add('fa-volume-high');
+                    icon.classList.add('animate-bounce');
+                }
+                if (statusText) statusText.innerText = "Reproduciendo";
+                isMusicPlaying = true;
+            } else {
+                bgMusic.pause();
+                if (icon) {
+                    icon.classList.remove('fa-volume-high', 'animate-bounce');
+                    icon.classList.add('fa-play');
+                }
+                if (statusText) statusText.innerText = "Pausado";
+                isMusicPlaying = false;
+            }
+        }
+
+        // Countdown Timer Logic
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const difference = eventDate - now;
+
+            if (difference > 0) {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+                document.getElementById('days').innerText = String(days).padStart(2, '0');
+                document.getElementById('hours').innerText = String(hours).padStart(2, '0');
+                document.getElementById('minutes').innerText = String(minutes).padStart(2, '0');
+                document.getElementById('seconds').innerText = String(seconds).padStart(2, '0');
+            } else {
+                document.getElementById('countdown').innerHTML = "<div class='col-span-4 font-serif text-emerald-700 font-semibold'>¡Hoy es el gran día!</div>";
+            }
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+
+        // WhatsApp RSVP Integration
+        function sendWhatsAppRSVPToBoth() {
+            const nameInput = document.getElementById('guestName');
+            if (!nameInput.checkValidity()) {
+                nameInput.reportValidity();
+                return;
+            }
+
+            const name = nameInput.value.trim();
+            const attendance = document.getElementById('attendance').value;
+            const adults = document.getElementById('adultsCount').value;
+            const kids = document.getElementById('kidsCount').value;
+            const allergies = document.getElementById('allergies').value.trim();
+
+            let msg = `*Confirmación de Asistencia - Bautizo Joana M. B.*\n\n`;
+            msg += `👤 *Nombre:* ${name}\n`;
+            msg += `💌 *Asistencia:* ${attendance}\n`;
+            if (attendance.includes('Sí')) {
+                msg += `👨‍👩‍👧 *Nº Adultos:* ${adults}\n`;
+                msg += `👶 *Nº Niños:* ${kids}\n`;
+                if (allergies) {
+                    msg += `🍽️ *Alergias/Menú especial:* ${allergies}\n`;
+                }
+            }
+
+            const encodedMsg = encodeURIComponent(msg);
+            const phones = ['34617691417', '34678348950'];
+
+            window.open(`https://wa.me/${phones[0]}?text=${encodedMsg}`, '_blank');
+            setTimeout(() => {
+                window.open(`https://wa.me/${phones[1]}?text=${encodedMsg}`, '_blank');
+            }, 600);
+        }
+
+        function downloadICS() {
+            const icsData = 
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Invitacion Bautizo Joana M. B.//ES
+BEGIN:VEVENT
+SUMMARY:Bautizo de Joana M. B.
+DESCRIPTION:Ceremonia en Iglesia Parroquial de Aldán y posterior convite en Restaurante Loureiro.
+LOCATION:Iglesia Parroquial de Aldán, Praza Obispo Cerviño, s/n, 36945 Aldán, Pontevedra
+DTSTART:20260926T100000Z
+DTEND:20260926T180000Z
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+            const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.setAttribute('download', 'Bautizo_Joana_MB.ics');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function addToGoogleCalendar() {
+            const title = encodeURIComponent("Bautizo de Joana M. B.");
+            const details = encodeURIComponent("Ceremonia en la Iglesia Parroquial de Aldán y posterior convite en Restaurante Loureiro.");
+            const location = encodeURIComponent("Iglesia Parroquial de Aldán, Cangas, Pontevedra");
+            const dates = "20260926T100000Z/20260926T180000Z";
+            
+            const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
+            window.open(gCalUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
